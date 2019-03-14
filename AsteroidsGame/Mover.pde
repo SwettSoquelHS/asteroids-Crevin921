@@ -26,6 +26,10 @@ interface Movable {
    */
   float getSpeed();
 
+  float getYSpeed();
+
+  float getXSpeed();
+
   /*
    Return the radius of influence. If you could draw a circle
    around your object, then what would this radius be.
@@ -67,7 +71,7 @@ interface Movable {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  Abstract base class Mover 
  */
-abstract class Mover {// implements Movable {
+abstract class Mover implements Movable {
 
   protected float x, y;
   protected float speed;
@@ -77,17 +81,19 @@ abstract class Mover {// implements Movable {
 
   /*
     Default Mover, not actually moving and directionless
-  */
+   */
   Mover(float x, float y) {
     //The line below shows how we can 
     //link this constructor to the constructor below through "this"
-    this(x, y, 0, 0);  
+    this(x, y, 0, 0);
   }
 
   /*
     Mover constructor specifying x, y position along with its speed and
-    direction (in degrees)
-  */
+   direction (in degrees)
+   */
+  float x_speed= 0;
+  float y_speed= 0;
   Mover(float x, float y, float speed, float direction) {
     this.x = x;
     this.y = y;
@@ -104,16 +110,42 @@ abstract class Mover {// implements Movable {
     x = x + speed*(float)Math.cos(radians(direction));
     y = y + speed*(float)Math.sin(radians(direction));
 
+
+
+
     //todo: You need to decide what to do when X is less than 0 or greater than width
+    if (x<-radius)x=width+radius;
+    if (x>width+radius)x=-radius;
+
     //todo: You need to decide what to do when Y is less than 0 or greater than height
+    if (y<-radius)y=height+radius;
+    if (y>height+radius)y=-radius;
   }
 
+  void keyPressed() {
+    if (key == CODED) {
+      if (keyCode == LEFT) {
+        ROTATE_LEFT = true;
+      } else {
+        ROTATE_LEFT = false;
+      }
+    }
+    if (keyCode == RIGHT) {
+      ROTATE_RIGHT = true;
+    } else {
+      ROTATE_RIGHT = false;
+    }
+
+    if (keyCode == UP) {
+      MOVE_FORWARD = true;
+    }
+  }
 
 
   /*
     Save this for your subclasses to override.
-    but notice how it is tagged with abstract, meaning 
-    it is incomplete. (It's like an I.O.U.)
+   but notice how it is tagged with abstract, meaning 
+   it is incomplete. (It's like an I.O.U.)
    */
   abstract void show();
 
@@ -121,9 +153,49 @@ abstract class Mover {// implements Movable {
   /*
     TODO: Part 4: Implement collision detection
    */
-  boolean collidingWith(Movable object){
-     return false; 
+  boolean collidingWith(Movable m) {
+    boolean WorldsCollide = false;
+    int time = 100;
+    double collisionDistance = 0;
+    
+    if (x + radius + m.getRadius() > m.getX() 
+      && x < m.getX() + radius + m.getRadius()
+      && y + radius + m.getRadius() > m.getY()
+      && y < m.getY() + radius + m.getRadius())
+    {
+      collisionDistance = Math.sqrt(
+        ((x - m.getX()) * (x - m.getX()))
+        + ((y - m.getY()) * (y - m.getY()))
+        );
+      if (collisionDistance+2 <radius + m.getRadius())
+      {
+        
+        float d = dist(x, y, m.getX(), m.getY());
+
+        if (time == 100) {
+          if (d <= radius + m.getRadius()) {
+            if (x< m.getX()) {
+              WorldsCollide = true;
+              time--;
+            }
+            if (y>m.getY()) {
+              WorldsCollide = true;
+              time--;
+            }
+            if (y< m.getY()) {
+              WorldsCollide = true;
+              time--;
+            }
+            if (y> m.getY()) {
+              WorldsCollide = true;
+              time--;
+            }
+          }
+        }
+      }
+    }
+    return WorldsCollide;
   }
-  
+
   //TODO: Part I: implement the methods of Moveable interface - delete this comment
 }
